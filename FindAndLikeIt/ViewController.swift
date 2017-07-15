@@ -15,23 +15,30 @@ class ViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     let loginButton = LoginButton(readPermissions: [.publicProfile])
+    loginButton.delegate = self
     loginButton.center = view.center
     view.addSubview(loginButton)
     }
+  @IBAction func unwind(segue: UIStoryboardSegue) {}
 }
 
 extension ViewController: LoginButtonDelegate {
+  
   func loginButtonDidCompleteLogin(_ loginButton: LoginButton, result: LoginResult) {
     switch result {
     case .failed(let error):
+      addAlarmAlert(error.localizedDescription)
       print(error)
     case .cancelled:
+      addAlarmAlert("You cancelled your operation.")
       print("User cancelled login.")
-    case .success(let grantedPermissions, let declinedPermissions, let accessToken):
+    case .success( _, _, _):
+      performSegue(withIdentifier: "start", sender: nil)
       print("Logged in!")
     }
   }
+  
   func loginButtonDidLogOut(_ loginButton: LoginButton) {
-    
+    addAlarmAlert("You log out, bye.")
   }
 }
