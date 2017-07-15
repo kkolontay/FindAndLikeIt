@@ -13,15 +13,23 @@ import FacebookCore
 class ViewController: UIViewController {
 
   override func viewDidLoad() {
+   
     super.viewDidLoad()
     let loginButton = LoginButton(readPermissions: [.publicProfile])
     loginButton.delegate = self
     loginButton.center = view.center
     view.addSubview(loginButton)
     }
+  
   @IBAction func unwind(segue: UIStoryboardSegue) {}
-}
 
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    if AccessToken.current != nil {
+      performSegue(withIdentifier: "start", sender: nil)
+    }
+  }
+}
 extension ViewController: LoginButtonDelegate {
   
   func loginButtonDidCompleteLogin(_ loginButton: LoginButton, result: LoginResult) {
