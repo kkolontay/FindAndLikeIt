@@ -7,26 +7,31 @@
 //
 
 import UIKit
-import FBSDKLoginKit
+import FacebookLogin
+import FacebookCore
 
 class ViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    // Do any additional setup after loading the view, typically from a nib.
-    let button = FBSDKLoginButton()
-    button.center = view.center
-    view.addSubview(button)
-//    FBSDKLoginButton *loginButton = [[FBSDKLoginButton alloc] init];
-//    loginButton.center = self.view.center;
-//    [self.view addSubview:loginButton];
-  }
-
-  override func didReceiveMemoryWarning() {
-    super.didReceiveMemoryWarning()
-    // Dispose of any resources that can be recreated.
-  }
-
-
+    let loginButton = LoginButton(readPermissions: [.publicProfile])
+    loginButton.center = view.center
+    view.addSubview(loginButton)
+    }
 }
 
+extension ViewController: LoginButtonDelegate {
+  func loginButtonDidCompleteLogin(_ loginButton: LoginButton, result: LoginResult) {
+    switch result {
+    case .failed(let error):
+      print(error)
+    case .cancelled:
+      print("User cancelled login.")
+    case .success(let grantedPermissions, let declinedPermissions, let accessToken):
+      print("Logged in!")
+    }
+  }
+  func loginButtonDidLogOut(_ loginButton: LoginButton) {
+    
+  }
+}
