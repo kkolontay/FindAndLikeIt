@@ -35,9 +35,29 @@ class MapViewController: UIViewController {
       element in
       guard let element = element else { return }
       self.departurePoint = element
+      self.calculateDirection(self.departurePoint!)
       
     })
+    calculateDirection(departurePoint!)
   }
+  
+  func calculateDirection(_ placeMark: CLPlacemark) {
+    let request = MKDirectionsRequest()
+    request.source = getMapItem(placeMark)
+    request.destination = destinationMapItem
+    request.requestsAlternateRoutes = true
+    request.transportType = .automobile
+    let directions = MKDirections(request: request)
+    directions.calculate(completionHandler: {
+      response, error in
+      if let routeResponse = response?.routes {
+        
+      } else if let _ = error {
+        self.addAlarmAlert("Direction not available.")
+      }
+    })
+  }
+  
   override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
     // Dispose of any resources that can be recreated.
