@@ -42,7 +42,7 @@ class StartViewController: UIViewController {
   
   func resubscribeVariable() {
   subject = LocationManager.sharedInstance.placeMark.subscribe(onNext: { element in
-  self.stopActivityIndicator()
+  self.stopActivityIndicator(&self.activityIndicator)
     if element != nil {
       self.destination = element
   self.performSegue(withIdentifier: "toMap", sender: nil)
@@ -52,22 +52,7 @@ class StartViewController: UIViewController {
   })
   }
   
-  func startActivityIndicator() {
-   activityIndicator = UIActivityIndicatorView(frame: CGRect(x: 0, y: 0, width: 45, height: 45))
-    activityIndicator?.activityIndicatorViewStyle = .gray
-    activityIndicator?.backgroundColor = view.backgroundColor
-    activityIndicator?.startAnimating()
-    activityIndicator?.center = view.center
-    view.addSubview(activityIndicator!)
-  }
-  
-  func stopActivityIndicator() {
-    if activityIndicator != nil {
-      activityIndicator?.removeFromSuperview()
-      activityIndicator = nil
-    }
-  }
-  
+    
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     subject?.dispose()
@@ -79,7 +64,7 @@ class StartViewController: UIViewController {
       addAlarmAlert("Your city's name wrong, please be careful.")
       return
     }
-    startActivityIndicator()
+    startActivityIndicator(&self.activityIndicator)
     LocationManager.sharedInstance.getPlacemark(cityNameTextField.text!)
   }
   

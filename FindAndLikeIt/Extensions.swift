@@ -15,4 +15,21 @@ extension UIViewController {
     alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
     present(alert, animated: true, completion: nil)
   }
+  
+  func startActivityIndicator(_ activityIndicator: inout UIActivityIndicatorView?) {
+    activityIndicator = UIActivityIndicatorView(frame: CGRect(x: 0, y: 0, width: 45, height: 45))
+    activityIndicator?.activityIndicatorViewStyle = .gray
+    activityIndicator?.backgroundColor = view.backgroundColor
+    activityIndicator?.startAnimating()
+    activityIndicator?.center = view.center
+    view.addSubview(activityIndicator!)
+  }
+  
+  func stopActivityIndicator(_  activityIndicator: inout UIActivityIndicatorView?) {
+    if activityIndicator != nil {
+      activityIndicator?.removeFromSuperview()
+      activityIndicator = nil
+    }
+  }
+
 }

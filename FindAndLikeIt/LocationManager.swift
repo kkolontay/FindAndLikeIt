@@ -14,6 +14,7 @@ import RxSwift
 class LocationManager: CLLocationManager {
   var placeMark = PublishSubject<CLPlacemark?>()
   var departurePoint = PublishSubject<CLPlacemark?>()
+  var speedLocaton = PublishSubject<Double>()
   static var sharedInstance: LocationManager {
     struct MainStruct {
       static let item = LocationManager()
@@ -36,6 +37,7 @@ extension LocationManager: CLLocationManagerDelegate {
     case .authorizedAlways:
       self.desiredAccuracy = kCLLocationAccuracyHundredMeters
       self.requestLocation()
+      self.startUpdatingLocation()
     // locationManager.delegate = self
     default:
       print("You can't use this app")
@@ -43,6 +45,7 @@ extension LocationManager: CLLocationManagerDelegate {
   }
   
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    speedLocaton.onNext(Double((locations.last?.speed)!))
     CLGeocoder().reverseGeocodeLocation(locations.last!) {
       placemarks, error -> Void in
       if let placemarks = placemarks {
