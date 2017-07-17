@@ -15,6 +15,7 @@ import FacebookCore
 class FacebookInteraction: NSObject {
   
   var annotationView: MKAnnotationView?
+  var object = BehaviorSubject<String>(value: "Hello")
   
   static var  sharedInstance: FacebookInteraction {
     struct Static {
@@ -42,7 +43,7 @@ class FacebookInteraction: NSObject {
           if let arrayId: Array<Dictionary<String, Any>> = dictionary["data"] as? Array<Dictionary<String, Any>> {
             if let id: String = (arrayId.first)?["id"] as? String {
               print(id)
-              self.getLikes(id, annotation: annotation )
+              self.getLikes(id)
             }
           }
         }
@@ -53,46 +54,28 @@ class FacebookInteraction: NSObject {
     connection.start()
   }
   
-  func getLikes(_ id: String, annotation: MKAnnotationView ) {
-    //let connection = GraphRequest(graphPath: request)
-  print(id)
+  func getLikes(_ id: String ) {
     let request = "/\(id)/likes"
     let connection = GraphRequest(graphPath: request, parameters: [:], accessToken: AccessToken.current, httpMethod: GraphRequestHTTPMethod(rawValue: "GET")!, apiVersion: .defaultVersion)
-  //  let connection = GraphRequest(graphPath: request)
     connection.start({
       httpResponse, result in
       switch result {
       case .success(let response):
-      print("Count likes: \(response)")
-                   if let dictionary = response.dictionaryValue {
-              print(dictionary)
-                if let arrayId: Array<Dictionary<String, Any>> = dictionary["data"] as? Array<Dictionary<String, Any>> {
-                  annotation.annotation?.subtitle = "\(arrayId.count) likes"
-               }
+        print("Count likes: \(response)")
+        if let dictionary = response.dictionaryValue {
+          print(dictionary)
+          if let arrayId: Array<Dictionary<String, Any>> = dictionary["data"] as? Array<Dictionary<String, Any>> {
+            DispatchQueue.main.async {
+              if  let annotation =  self.annotationView?.annotation as? MKPointAnnotation {
+                annotation.subtitle = "\(arrayId.count) likes"
+                self.object.onNext("Stop")
               }
-      case .failed(let error):
-      print("Graph Request Failed: \(error)")
-    }
-
-    })
-  
-   /* connection.add(GraphRequest(graphPath: request)) { httpResponse, result in
-      switch result {
-      case .success(let response):
-        print("Graph Request Succeeded: \(response)")
-        print(response)
-//        if let dictionary = response.dictionaryValue {
-//          if let arrayId: Array<Dictionary<String, Any>> = dictionary["data"] as? Array<Dictionary<String, Any>> {
-//            if let id: String = (arrayId.first)?["id"] as? String {
-//              print(id)
-//            }
-//          }
-//        }
+            }
+          }
+        }
       case .failed(let error):
         print("Graph Request Failed: \(error)")
       }
-    }
-    connection.start()
-    return "hello"*/
+    })
   }
 }

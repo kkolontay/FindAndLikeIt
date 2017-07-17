@@ -12,6 +12,7 @@ import MapKit
 import RxSwift
 
 class LocationManager: CLLocationManager {
+  
   var placeMark = PublishSubject<CLPlacemark?>()
   var departurePoint = PublishSubject<CLPlacemark?>()
   var speedLocaton = PublishSubject<Double>()
@@ -38,7 +39,6 @@ extension LocationManager: CLLocationManagerDelegate {
       self.desiredAccuracy = kCLLocationAccuracyHundredMeters
       self.requestLocation()
       self.startUpdatingLocation()
-    // locationManager.delegate = self
     default:
       print("You can't use this app")
     }
@@ -51,7 +51,6 @@ extension LocationManager: CLLocationManagerDelegate {
       if let placemarks = placemarks {
         let placemark = placemarks.first
         self.departurePoint.onNext(placemark)
-
       }
     }
   }
@@ -72,8 +71,8 @@ extension LocationManager: CLLocationManagerDelegate {
       }
     })
   }
+  
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
     print(error)
   }
-  
 }

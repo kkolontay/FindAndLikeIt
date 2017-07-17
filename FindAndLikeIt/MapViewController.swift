@@ -12,6 +12,7 @@ import MapKit
 import RxSwift
 
 class MapViewController: UIViewController {
+  
   var destinationPoint: CLPlacemark?
   var departurePoint: CLPlacemark?
   var departureSubject: Disposable?
@@ -21,12 +22,14 @@ class MapViewController: UIViewController {
   var polyline:MKPolyline?
   var speed: Disposable?
   var lastSpeed: Double = 0
+  var activityIndicator: UIActivityIndicatorView?
+  var stopActivity: Disposable?
   
   @IBOutlet weak var mapLocation: MKMapView!
   override func viewDidLoad() {
     super.viewDidLoad()
     destinationMapItem = getMapItem(destinationPoint!)
-     mapLocation.delegate = self
+    mapLocation.delegate = self
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -45,9 +48,13 @@ class MapViewController: UIViewController {
         self.calculateDirection(self.departurePoint!)
       }
     })
-   DispatchQueue.global(qos: .default).async {
+    DispatchQueue.global(qos: .default).async {
       self.calculateDirection(self.departurePoint!)
     }
+    stopActivity = FacebookInteraction.sharedInstance.object.subscribe({
+      element in
+      self.stopActivityIndicator(&self.activityIndicator)
+    })
   }
   
   func calculateDirection(_ placeMark: CLPlacemark) {
@@ -64,7 +71,7 @@ class MapViewController: UIViewController {
           $0.expectedTravelTime < $1.expectedTravelTime
         }).first!
         self.plotPolyline(route: quickestRouteForSegment)
-      } 
+      }
     })
     var square: Double = 0.025
     if 9 < lastSpeed {
@@ -79,7 +86,7 @@ class MapViewController: UIViewController {
     let span = MKCoordinateSpanMake(square, square)
     let region = MKCoordinateRegion(center: (placeMark.location?.coordinate)!, span: span)
     DispatchQueue.main.sync {
-    mapLocation.setRegion(region, animated: true)
+      mapLocation.setRegion(region, animated: true)
     }
     DispatchQueue.global(qos: .background).async {
       self.getRestoranst(placeMark)
@@ -97,50 +104,23 @@ class MapViewController: UIViewController {
         print("There was an error searching")
         return
       }
-       self.mapLocation.removeAnnotations(self.mapLocation.annotations)
+      self.mapLocation.removeAnnotations(self.mapLocation.annotations)
       print("There are \(response.mapItems.count)")
       let nearestRestaurant = response.mapItems.sorted { ($0.placemark.location?.distance(from: (self.departurePoint?.location)!))! < ($1.placemark.location?.distance(from: (self.departurePoint?.location)!))!
       }
       self.restourants = Array(nearestRestaurant.prefix(10))
       for item in self.restourants {
         DispatchQueue.main.async {
-        self.dropPinZoomIn(placemark: item.placemark)
+          self.dropPinZoomIn(placemark: item.placemark)
         }
-        item.placemark.region
-        print("\(String(describing: item.name)), \(item.placemark)")
-        print("latitude ==== \(String(describing: item.placemark.coordinate.latitude))")
       }
     })
   }
-//  func parseAddress(selectedItem:MKPlacemark) -> String {
-//    // put a space between "4" and "Melrose Place"
-//    let firstSpace = (selectedItem.subThoroughfare != nil && selectedItem.thoroughfare != nil) ? " " : ""
-//    // put a comma between street and city/state
-//    let comma = (selectedItem.subThoroughfare != nil || selectedItem.thoroughfare != nil) && (selectedItem.subAdministrativeArea != nil || selectedItem.administrativeArea != nil) ? ", " : ""
-//    // put a space between "Washington" and "DC"
-//    //let secondSpace = (selectedItem.subAdministrativeArea != nil && selectedItem.administrativeArea != nil) ? " " : ""
-//    let addressLine = String(
-//      format:"%@%@%@%@%@",
-//      // street number
-//      selectedItem.subThoroughfare ?? "",
-//      firstSpace,
-//      // street name
-//      selectedItem.thoroughfare ?? "",
-//      comma,
-//      // city
-//      selectedItem.locality ?? ""
-//      // state
-//     // selectedItem.administrativeArea ?? ""
-//    )
-//    return addressLine
-//  }
   
   func dropPinZoomIn(placemark:MKPlacemark){
     let annotation = MKPointAnnotation()
     annotation.coordinate = placemark.coordinate
     annotation.title = placemark.name
-    //MARK - This place
-    annotation.subtitle = "0 likes"
     mapLocation.addAnnotation(annotation)
   }
   
@@ -150,7 +130,7 @@ class MapViewController: UIViewController {
     }
     mapLocation.add(route.polyline)
     polyline = route.polyline
-    }
+  }
   
   func getMapItem(_ placemark: CLPlacemark) -> MKMapItem? {
     if let coordinate = placemark.location?.coordinate, let address = placemark.addressDictionary {
@@ -165,10 +145,12 @@ class MapViewController: UIViewController {
     departureSubject?.dispose()
     locationManager = nil
     speed?.dispose()
+    stopActivity?.dispose()
   }
 }
 
 extension MapViewController: MKMapViewDelegate {
+  
   func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
     let polylineRenderer = MKPolylineRenderer(overlay: overlay)
     if (overlay is MKPolyline) {
@@ -177,7 +159,9 @@ extension MapViewController: MKMapViewDelegate {
     }
     return polylineRenderer
   }
+  
   func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+    startActivityIndicator(&activityIndicator)
     FacebookInteraction.sharedInstance.searchOject(view)
   }
 }

@@ -13,18 +13,13 @@ import CoreLocation
 import RxSwift
 
 class StartViewController: UIViewController {
-
+  
   @IBOutlet weak var cityNameTextField: UITextField!
   var destination: CLPlacemark?
   var departure:CLPlacemark?
   var subject: Disposable?
   var subjectDeparture: Disposable?
   var activityIndicator: UIActivityIndicatorView?
-  
-  override func viewDidLoad() {
-        super.viewDidLoad()
-              // Do any additional setup after loading the view.
-    }
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
@@ -41,18 +36,18 @@ class StartViewController: UIViewController {
   }
   
   func resubscribeVariable() {
-  subject = LocationManager.sharedInstance.placeMark.subscribe(onNext: { element in
-  self.stopActivityIndicator(&self.activityIndicator)
-    if element != nil {
-      self.destination = element
-  self.performSegue(withIdentifier: "toMap", sender: nil)
-    } else {
-      self.addAlarmAlert("Nothing founded.")
-    }
-  })
+    subject = LocationManager.sharedInstance.placeMark.subscribe(onNext: { element in
+      self.stopActivityIndicator(&self.activityIndicator)
+      if element != nil {
+        self.destination = element
+        self.performSegue(withIdentifier: "toMap", sender: nil)
+      } else {
+        self.addAlarmAlert("Nothing founded.")
+      }
+    })
   }
   
-    
+  
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     subject?.dispose()
@@ -69,10 +64,10 @@ class StartViewController: UIViewController {
   }
   
   override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-      if segue.identifier == "toMap" {
-        let controller = segue.destination as! MapViewController
-        controller.destinationPoint = destination
-        controller.departurePoint = departure
-      }
+    if segue.identifier == "toMap" {
+      let controller = segue.destination as! MapViewController
+      controller.destinationPoint = destination
+      controller.departurePoint = departure
     }
+  }
 }
